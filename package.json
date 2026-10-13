@@ -1,5 +1,5 @@
 {
-  "name": "job-researcher",
+  "name": "fleo-jobs",
   "private": true,
   "scripts": {
     "dev": "pnpm --parallel --filter @job-researcher/backend --filter @job-researcher/frontend dev",

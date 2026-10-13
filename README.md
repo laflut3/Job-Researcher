@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🌍 Job Researcher</h1>
+  <h1>🌍 fleo-jobs</h1>
   <p><strong>Find early-career opportunities around the world.</strong></p>
   <p>
     <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg">
@@ -8,7 +8,7 @@
   </p>
 </div>
 
-> **Status:** Early MVP. Live listings currently come from Arbeitnow's free public API.
+> **Status:** Early MVP. Listings come from Arbeitnow (Europe) and Jobicy (remote, worldwide).
 
 Search live listings by keyword, location, work arrangement, and job type. Each card links to the original posting.
 
@@ -22,7 +22,7 @@ Search live listings by keyword, location, work arrangement, and job type. Each 
 - Show remote location restrictions when a source provides them; “remote” does not necessarily mean “work from anywhere.”
 - Keep unknown classifications in broad results so missing source metadata does not hide opportunities.
 - No database, paid API key, account, or external search service is required to run the MVP.
-- Arbeitnow is Germany/Europe-focused, so this is not complete worldwide coverage. Add sources only when their free access and redistribution terms fit.
+- Coverage depends on the public feeds: Jobicy provides remote jobs from the last 7 days; neither feed covers every country or role.
 
 ## Cost
 

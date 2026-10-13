@@ -22,16 +22,19 @@ export function Select({
 export function SelectTrigger({
   children,
   className,
+  id,
 }: {
   children: ReactNode;
   className?: string;
+  id?: string;
 }) {
   return (
     <SelectPrimitive.Trigger
       className={cn(
-        "inline-flex h-12 w-full items-center justify-between rounded-xl border border-border bg-background px-4 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "inline-flex h-12 w-full min-w-0 items-center justify-between gap-2 rounded-xl border border-border bg-background px-4 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring [&>span:first-child]:min-w-0 [&>span:first-child]:truncate",
         className,
       )}
+      id={id}
     >
       {children}
       <SelectPrimitive.Icon>
@@ -49,10 +52,12 @@ export function SelectContent({ children }: { children: ReactNode }) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
-        className="z-50 overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+        className="z-50 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
         position="popper"
       >
-        <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
+        <SelectPrimitive.Viewport className="max-h-[min(18rem,var(--radix-select-content-available-height))] overflow-y-auto overscroll-contain">
+          {children}
+        </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   );

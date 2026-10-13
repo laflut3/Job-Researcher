@@ -8,7 +8,13 @@
       name="description"
       content="Discover internships and early-career opportunities around the world."
     />
-    <title>Wayfinder — Find work that takes you further</title>
+    <title>fleo-jobs — Find opportunities worldwide</title>
+    <script>
+      try {
+        const theme = localStorage.getItem("fleo-jobs-theme");
+        if (theme === "dark" || theme === "light") document.documentElement.classList.add(theme);
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

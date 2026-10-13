@@ -1,5 +1,5 @@
 import { ArrowUpRight, BriefcaseBusiness, MapPin } from "lucide-react";
-import type { JobListing } from "@job-researcher/shared";
+import { classifyJob, type JobListing } from "@job-researcher/shared";
 import { Badge } from "./ui/badge";
 
 function postedLabel(timestamp: number | null) {
@@ -11,6 +11,7 @@ function postedLabel(timestamp: number | null) {
 }
 
 export function JobCard({ job }: { job: JobListing }) {
+  const category = classifyJob(job);
   return (
     <article className="group flex min-h-64 flex-col rounded-2xl border border-border bg-card p-6 transition duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_16px_45px_-28px_rgba(24,48,39,0.35)] sm:p-7">
       <div className="flex items-start justify-between gap-4">
@@ -34,6 +35,8 @@ export function JobCard({ job }: { job: JobListing }) {
           {job.location}
         </Badge>
         {job.remote === true && <Badge className="bg-accent text-primary">Remote</Badge>}
+        {category.domains[0] !== "Other / Autre" && <Badge>{category.domains[0]}</Badge>}
+        {category.subdomains[0] && <Badge>{category.subdomains[0]}</Badge>}
         {job.type.slice(0, 1).map((type) => (
           <Badge key={type}>{type}</Badge>
         ))}

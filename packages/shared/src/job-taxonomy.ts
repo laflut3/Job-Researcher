@@ -14,28 +14,24 @@ const domains: Domain[] = [
     "technology|tech|information technology|informatique|technologies numériques|IT",
     [
       facet(
-        "Software Development / Développement logiciel",
-        "software development|software developer|software engineer|web developer|full stack|frontend|front end|backend|back end|programming|développement logiciel|développeur|développeuse|programmation",
+        "Development / Développement",
+        "dev|developer|developers|software development|software developer|software engineer|web developer|full stack|frontend|front end|backend|back end|programming|développement logiciel|développeur|développeuse|programmation",
       ),
       facet(
-        "DevOps & Site Reliability",
-        "devops|site reliability|SRE|platform engineer|platform engineering|ingénieur plateforme|ingénierie plateforme|ingénieur infrastructure",
+        "DevOps, Cloud & Infrastructure / Infrastructure cloud",
+        "devops|site reliability|SRE|platform engineer|platform engineering|infrastructure|infrastructure engineer|cloud|cloud computing|cloud engineer|cloud architect|cloud infrastructure|AWS|Azure|GCP|Google Cloud|Kubernetes|ingénieur plateforme|ingénierie plateforme|ingénieur infrastructure|ingénieur cloud|informatique en nuage",
       ),
       facet(
         "Cybersecurity / Cybersécurité",
         "cybersecurity|cyber security|cybersécurité|sécurité informatique|information security|infosec|security operations|SOC analyst|sécurité des systèmes",
       ),
       facet(
-        "Cloud Computing",
-        "cloud computing|cloud engineer|cloud architect|cloud infrastructure|AWS|Azure|GCP|Google Cloud|ingénieur cloud|informatique en nuage",
-      ),
-      facet(
         "Data & AI / Données et IA",
         "data engineer|data scientist|data analyst|analytics engineer|machine learning|artificial intelligence|AI engineer|science des données|ingénieur données|intelligence artificielle|apprentissage automatique",
       ),
       facet(
-        "IT Support & Systems / Support et systèmes",
-        "IT support|help desk|helpdesk|systems administrator|system administrator|sysadmin|network engineer|network administrator|support informatique|administrateur systèmes|administrateur réseau",
+        "IT Support & Networking / Support informatique et réseaux",
+        "IT support|help desk|helpdesk|systems administrator|system administrator|sysadmin|network engineer|network administrator|networking|support informatique|administrateur systèmes|administrateur réseau|réseaux informatiques",
       ),
       facet(
         "Quality Assurance & Testing / Tests logiciels",
@@ -226,10 +222,7 @@ export function classifyJob(job: JobListing) {
       ? matchedDomains.map(({ domain: item }) => item.name)
       : ["Other / Autre"],
     subdomains: [
-      ...new Set([
-        ...matchedDomains.flatMap(({ subdomains }) => subdomains.map(({ name }) => name)),
-        ...job.subcategories.filter((value) => value.trim()),
-      ]),
+      ...new Set(matchedDomains.flatMap(({ subdomains }) => subdomains.map(({ name }) => name))),
     ],
   };
 }
@@ -239,7 +232,7 @@ export function resolveDomain(value: string) {
   return (
     domains.find(
       (item) =>
-        normalize(item.name) === normalized ||
+        item.name.split(" / ").some((label) => normalize(label) === normalized) ||
         hasTerm(normalized, [...item.terms, ...item.subdomains.flatMap(({ terms }) => terms)]),
     )?.name ?? value.trim()
   );
@@ -250,7 +243,10 @@ export function resolveSubdomain(value: string) {
   return (
     domains
       .flatMap(({ subdomains }) => subdomains)
-      .find((item) => normalize(item.name) === normalized || hasTerm(normalized, item.terms))
-      ?.name ?? value.trim()
+      .find(
+        (item) =>
+          item.name.split(" / ").some((label) => normalize(label) === normalized) ||
+          hasTerm(normalized, item.terms),
+      )?.name ?? value.trim()
   );
 }

@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { ArrowDown, BriefcaseBusiness, Search } from "lucide-react";
 import type { JobListing, JobsResponse } from "@job-researcher/shared";
@@ -9,6 +10,7 @@ import { SearchForm } from "../components/search-form";
 import { Button } from "../components/ui/button";
 import type { SearchState } from "../router";
 import { canonicalCountry, countryCode, countryOptions } from "../lib/countries";
+import { languageForLocale, type Locale } from "../i18n";
 import {
   Select,
   SelectContent,
@@ -114,8 +116,11 @@ function matches({ job, domains, subdomains }: ClassifiedJob, filters: SearchSta
 }
 
 export function HomePage() {
-  const filters = useSearch({ from: "/" });
-  const navigate = useNavigate({ from: "/" });
+  const { locale } = useParams({ from: "/$locale" });
+  const filters = useSearch({ from: "/$locale" });
+  const navigate = useNavigate({ from: "/$locale" });
+  const { t } = useTranslation();
+  const language = languageForLocale(locale as Locale);
   const [theme, setTheme] = useState<Theme>(storedTheme);
   const pageSize = 12;
 
@@ -162,14 +167,24 @@ export function HomePage() {
   const categories = [...new Set(classifiedJobs.flatMap((job) => job.domains))].sort((a, b) =>
     a.localeCompare(b),
   );
-  const selectedDomain = resolveDomain(filters.category);
-  const subcategories = [
-    ...new Set(
-      classifiedJobs
-        .filter((job) => !filters.category || job.domains.includes(selectedDomain))
-        .flatMap((job) => job.subdomains),
-    ),
-  ].sort((a, b) => a.localeCompare(b));
+  const subcategoriesByDomain = Object.fromEntries(
+    categories.map((category) => [
+      category,
+      [
+        ...new Set(
+          classifiedJobs
+            .filter((job) => job.domains.includes(category))
+            .flatMap((job) => job.subdomains),
+        ),
+      ].sort((a, b) => a.localeCompare(b)),
+    ]),
+  );
+  const localizedCountries = countryOptions.map((country) => ({
+    value: country,
+    label: countryCode(country)
+      ? (new Intl.DisplayNames([language], { type: "region" }).of(countryCode(country)) ?? country)
+      : country,
+  }));
   const companies = [
     ...new Set(
       classifiedJobs
@@ -234,7 +249,7 @@ export function HomePage() {
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <header className="flex h-20 items-center justify-between border-b border-border/80">
           <a
-            href="/"
+            href={`/${locale}`}
             className="flex items-center gap-2.5 font-semibold tracking-tight text-foreground"
           >
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -242,27 +257,51 @@ export function HomePage() {
             </span>
             <span>fleo-jobs</span>
           </a>
-          <label className="sr-only" htmlFor="theme-select">
-            Color theme
-          </label>
-          <Select value={theme} onValueChange={(value) => setTheme(value as Theme)}>
-            <SelectTrigger id="theme-select" className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="system">System</SelectItem>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <label className="sr-only" htmlFor="language-select">
+              {t("language")}
+            </label>
+            <Select
+              value={locale}
+              onValueChange={(value) =>
+                void navigate({
+                  to: "/$locale",
+                  params: { locale: value },
+                  search: (previous) => previous,
+                  replace: true,
+                })
+              }
+            >
+              <SelectTrigger id="language-select" className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en-us">{t("languageEnglish")}</SelectItem>
+                <SelectItem value="fr-fr">{t("languageFrench")}</SelectItem>
+              </SelectContent>
+            </Select>
+            <label className="sr-only" htmlFor="theme-select">
+              {t("theme")}
+            </label>
+            <Select value={theme} onValueChange={(value) => setTheme(value as Theme)}>
+              <SelectTrigger id="theme-select" className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="system">{t("themeSystem")}</SelectItem>
+                <SelectItem value="light">{t("themeLight")}</SelectItem>
+                <SelectItem value="dark">{t("themeDark")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </header>
 
         <section className="relative mx-auto max-w-5xl pb-12 pt-16 text-center sm:pb-14 sm:pt-24">
           <h1 className="mx-auto max-w-4xl font-serif text-5xl leading-[1.05] tracking-[-0.055em] text-foreground sm:text-7xl">
-            Find your next opportunity <span className="text-primary italic">worldwide.</span>
+            {t("heroTitle")} <span className="text-primary italic">{t("worldwide")}</span>
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Search global remote and European listings. Apply directly with the original source.
+            {t("heroDescription")}
           </p>
         </section>
 
@@ -271,11 +310,11 @@ export function HomePage() {
             <SearchForm
               key={JSON.stringify(filters)}
               value={filters}
-              countries={countryOptions}
+              countries={localizedCountries}
               locations={locations}
               titles={titles}
               categories={categories}
-              subcategories={subcategories}
+              subcategoriesByDomain={subcategoriesByDomain}
               companies={companies}
               onSearch={updateSearch}
             />
@@ -286,16 +325,16 @@ export function HomePage() {
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                Opportunities
+                {t("opportunities")}
               </p>
               <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
                 {jobsQuery.isPending
-                  ? "Finding your next move…"
-                  : `${results.length} roles to explore`}
+                  ? t("loadingResults")
+                  : t("resultCount", { count: results.length })}
               </h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Listings from{" "}
+              {t("listingsFrom")}{" "}
               {jobsQuery.data?.pages[0]?.sources.map((source, index, sources) => (
                 <span key={source}>
                   {index > 0 && (index === sources.length - 1 ? " and " : ", ")}
@@ -332,12 +371,10 @@ export function HomePage() {
           )}
           {jobsQuery.isError && !jobsQuery.data && (
             <div className="rounded-2xl border border-destructive/20 bg-card p-8 text-center">
-              <h3 className="font-semibold">We couldn’t load the listings</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                The free job feed may be temporarily unavailable. Please try again.
-              </p>
+              <h3 className="font-semibold">{t("loadErrorTitle")}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{t("loadErrorDescription")}</p>
               <Button variant="outline" className="mt-5" onClick={() => void jobsQuery.refetch()}>
-                Try again
+                {t("retry")}
               </Button>
             </div>
           )}
@@ -349,10 +386,8 @@ export function HomePage() {
                 <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-accent text-primary">
                   <Search className="size-5" />
                 </div>
-                <h3 className="mt-4 font-semibold">No matching roles in the loaded listings</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Try a broader keyword, clear a filter, or load more listings.
-                </p>
+                <h3 className="mt-4 font-semibold">{t("emptyTitle")}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{t("emptyDescription")}</p>
                 <Button
                   variant="outline"
                   className="mt-5"
@@ -370,7 +405,7 @@ export function HomePage() {
                     })
                   }
                 >
-                  Clear filters
+                  {t("clearFilters")}
                 </Button>
               </div>
             )}
@@ -382,13 +417,13 @@ export function HomePage() {
             </div>
           )}
           {jobsQuery.isFetchingNextPage && results.length < filters.page * pageSize && (
-            <p className="py-8 text-center text-sm text-muted-foreground">Loading this page…</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t("loadingPage")}</p>
           )}
           {jobsQuery.isError && jobsQuery.data && (
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
-              Could not load more listings.
+              {t("couldNotLoadMore")}
               <Button variant="outline" size="sm" onClick={() => void jobsQuery.fetchNextPage()}>
-                Retry
+                {t("retry")}
               </Button>
             </div>
           )}
@@ -399,7 +434,7 @@ export function HomePage() {
                 onClick={() => void jobsQuery.fetchNextPage()}
                 disabled={jobsQuery.isFetchingNextPage}
               >
-                {jobsQuery.isFetchingNextPage ? "Loading listings…" : "Load more listings"}
+                {jobsQuery.isFetchingNextPage ? t("loadingListings") : t("loadMore")}
               </Button>
             </div>
           )}
@@ -414,7 +449,7 @@ export function HomePage() {
                 onClick={() => goToPage(filters.page - 1)}
                 disabled={filters.page <= 1}
               >
-                Previous
+                {t("previous")}
               </Button>
               {visiblePages.map((page, index) => (
                 <span key={page} className="contents">
@@ -440,23 +475,22 @@ export function HomePage() {
                 disabled={filters.page >= pageCount}
               >
                 {jobsQuery.isFetchingNextPage ? (
-                  "Loading…"
+                  t("loading")
                 ) : (
                   <>
-                    Next <ArrowDown className="size-3.5 -rotate-90" />
+                    {t("next")} <ArrowDown className="size-3.5 -rotate-90" />
                   </>
                 )}
               </Button>
             </nav>
           )}
           <p className="mt-8 text-center text-xs leading-5 text-muted-foreground">
-            Listings are provided by third-party sources. Always check the original posting for
-            current details and eligibility.
+            {t("listingsDisclaimer")}
           </p>
         </section>
 
         <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-          fleo-jobs · Open-source job discovery
+          {t("footer")}
         </footer>
       </div>
     </main>

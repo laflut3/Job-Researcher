@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "paths": { "@/*": ["./src/*"] },
     "target": "ES2023",
     "lib": ["ES2023", "DOM"],
     "module": "ESNext",

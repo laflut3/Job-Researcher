@@ -1,5 +1,6 @@
 import Fastify from "fastify";
 import type { HealthResponse } from "@job-researcher/shared";
+import { registerJobsRoutes } from "./routes/jobs.js";
 
 const app = Fastify({ logger: true });
 
@@ -19,6 +20,8 @@ app.get(
   },
   async (): Promise<HealthResponse> => ({ status: "ok" }),
 );
+
+await registerJobsRoutes(app);
 
 const port = Number(process.env.PORT ?? 3000);
 

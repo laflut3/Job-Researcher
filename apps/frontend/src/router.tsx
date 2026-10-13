@@ -1,21 +1,28 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
-import type { HealthResponse } from "@job-researcher/shared";
 import { HomePage } from "./pages/home-page";
+
+export type SearchState = {
+  q: string;
+  location: string;
+  type: string;
+  remote: boolean;
+  company: string;
+  page: number;
+};
 
 const rootRoute = createRootRoute({ component: Outlet });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  loader: async (): Promise<HealthResponse> => {
-    const response = await fetch("/api/health");
-
-    if (!response.ok) {
-      throw new Error("The API is unavailable");
-    }
-
-    return response.json();
-  },
+  validateSearch: (search: Record<string, unknown>): SearchState => ({
+    q: typeof search.q === "string" ? search.q : "",
+    location: typeof search.location === "string" ? search.location : "",
+    type: typeof search.type === "string" ? search.type : "any",
+    remote: search.remote === true || search.remote === "true",
+    company: typeof search.company === "string" ? search.company : "",
+    page: typeof search.page === "number" && search.page > 0 ? Math.floor(search.page) : 1,
+  }),
   component: HomePage,
 });
 

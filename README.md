@@ -8,36 +8,29 @@
   </p>
 </div>
 
-> **Status:** Project scaffold. Job search, source connectors, and database storage are not implemented yet.
+> **Status:** Early MVP. Live listings currently come from Arbeitnow's free public API.
 
-Search across configured job sources and filter by keywords, country or location, work arrangement, and job type. Results are intended to appear as cards with a title, short description, and a link to the original listing.
+Search live listings by keyword, location, work arrangement, and job type. Each card links to the original posting.
 
 ## Design
 
-`Source adapters → normalized PostgreSQL index → Fastify search API → React cards`
+`Public job API → Fastify adapter → React search and cards`
 
 - Keep filters in the URL so searches can be bookmarked and shared.
-- Normalize listings from multiple providers and retain their original source links.
+- Keep provider-specific mapping in a backend source adapter and retain original links.
 - Support internships/stages, apprenticeships/alternance, fixed-term (CDD), permanent (CDI), and unknown job types across countries.
 - Show remote location restrictions when a source provides them; “remote” does not necessarily mean “work from anywhere.”
 - Keep unknown classifications in broad results so missing source metadata does not hide opportunities.
-- Index sources on a schedule and search the local database; keep provider credentials and rate limits out of browser requests.
-- Start with PostgreSQL filters and language-aware full-text search. Consider `pg_trgm` for typo tolerance before adding a separate search service.
-- Coverage depends on source availability, country support, provider credentials, and usage terms. There is no single complete worldwide feed.
+- No database, paid API key, account, or external search service is required to run the MVP.
+- Arbeitnow is Germany/Europe-focused, so this is not complete worldwide coverage. Add sources only when their free access and redistribution terms fit.
 
-## Sources to evaluate
+## Cost
 
-- [Adzuna](https://developer.adzuna.com/overview) for broader country-based search; it requires an app ID and key.
-- [Greenhouse](https://docs.greenhouse.io/job-board.html) and [Lever](https://github.com/lever/postings-api) for published employer listings. These are board feeds, so coverage requires a registry of company board IDs; Lever does not provide global full-text search.
-- [Ashby](https://developers.ashbyhq.com/reference/jobpostinglist) only with the required `jobsRead` access, and with `listedOnly=true` for public listings.
-
-These are candidates, not working integrations. Check each provider’s terms and regional availability before publishing a connector.
+Local use and the current public API integration have no service fee. Hosting a public, always-on instance requires a machine or hosting provider; free hosting plans can change and are not guaranteed by this project.
 
 ## Stack
 
-**In place:** React, Vite, Tailwind CSS, TanStack Router, Fastify, TypeScript, pnpm, Oxc.
-
-**Planned:** TanStack Query, PostgreSQL, and Drizzle ORM. Consider TypeBox only if Fastify route schemas need shared type inference.
+React, Vite, Tailwind CSS, shadcn/ui components, TanStack Router and Query, Fastify, TypeScript, pnpm, Oxc.
 
 ## Development
 
@@ -48,7 +41,17 @@ pnpm install
 pnpm dev
 ```
 
-The frontend runs on Vite and proxies `/api` to the Fastify backend on port `3000`.
+The frontend runs on Vite and proxies `/api` to Fastify on port `3000`. Job filters are stored in the URL. Results are cached in memory by TanStack Query and the backend for ten minutes.
+
+### Self-host with Docker
+
+Requires Docker Engine and the Compose plugin on a machine you control:
+
+```sh
+docker compose up --build -d
+```
+
+Open [http://localhost:8080](http://localhost:8080). This does not require a paid hosting account; a public instance still needs your own internet-connected machine and domain if desired.
 
 ```sh
 pnpm build

@@ -1,0 +1,17 @@
+{
+  "name": "job-researcher",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter @job-researcher/backend --filter @job-researcher/frontend dev",
+    "build": "pnpm --recursive build",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check ."
+  },
+  "devDependencies": {
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2"
+  },
+  "packageManager": "pnpm@12.2.1"
+}

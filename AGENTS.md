@@ -3,7 +3,7 @@
 ## Project shape and stack
 
 - This repository is a Node.js monorepo managed with pnpm. Keep the frontend, backend, and shared packages in their existing workspace locations and use pnpm workspace commands.
-- The frontend uses React and TanStack Router. Use TanStack Query only when server-state caching, refetching, or synchronization is actually needed; do not add it by default.
+- The frontend uses React, TanStack Router, and Tailwind CSS. Prefer Tailwind utility classes for component styling and keep custom CSS limited to global styles or cases utilities do not cover. Use TanStack Query only when server-state caching, refetching, or synchronization is actually needed; do not add it by default.
 - The backend uses Fastify. Preserve Fastify's developer experience: use its plugin and route model, rely on its TypeScript support and schema-based validation/serialization, and keep route handlers straightforward. Avoid wrapping Fastify or rebuilding its request lifecycle with custom abstractions.
 - Use Oxc formatting and linting (`oxfmt` and `oxlint`) through the repository's package scripts when available. If scripts are not defined, use the installed tools through pnpm (for example, `pnpm exec oxfmt` and `pnpm exec oxlint`). Do not introduce another formatter or linter without a concrete need.
 
